@@ -68,6 +68,7 @@ build()
    GCC=$3
    SDK=$4
    EXTRA=$5
+   INSTALL=$6
    rm -rf "openssl-${OPENSSL_VERSION}"
    tar xfz "openssl-${OPENSSL_VERSION}.tar.gz"
    pushd .
@@ -76,17 +77,24 @@ build()
    perl -i -pe 's|static volatile sig_atomic_t intr_signal|static volatile int intr_signal|' crypto/ui/ui_openssl.c
    perl -i -pe "s|^CC= gcc|CC= ${GCC} -arch ${ARCH} -miphoneos-version-min=${MIN_VERSION}|g" Makefile
    perl -i -pe "s|^CFLAG= (.*)|CFLAG= -isysroot ${SDK} \$1|g" Makefile
-   make &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.build-log"
-   make -k install &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.install-log"
+   make -j4 &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.build-log"
+   if [ "$INSTALL" == "yes" ]; then
+	   make -k install &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.install-log"
+   else
+       mkdir -p "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}/lib/"
+       cp libcrypto.a "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}/lib/"
+       cp libssl.a "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}/lib/"
+   fi
    popd
    rm -rf "openssl-${OPENSSL_VERSION}"
 }
 
-build "BSD-generic32" "armv7" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" ""
-build "BSD-generic32" "armv7s" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" ""
-build "BSD-generic64" "arm64" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" ""
-build "BSD-generic32" "i386" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" ""
-build "BSD-generic64" "x86_64" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" "-DOPENSSL_NO_ASM"
+#### WE REMOVE armv7s architecture
+
+build "BSD-generic32" "armv7" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" "" "no"
+build "BSD-generic64" "arm64" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" "" "no"
+build "BSD-generic32" "i386" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" "" "yes"
+build "BSD-generic64" "x86_64" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" "-DOPENSSL_NO_ASM" "no"
 
 #
 
@@ -96,14 +104,12 @@ cp -r /tmp/openssl-${OPENSSL_VERSION}-i386/include/openssl include/
 mkdir lib
 lipo \
 	"/tmp/openssl-${OPENSSL_VERSION}-armv7/lib/libcrypto.a" \
-	"/tmp/openssl-${OPENSSL_VERSION}-armv7s/lib/libcrypto.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-arm64/lib/libcrypto.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-i386/lib/libcrypto.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-x86_64/lib/libcrypto.a" \
 	-create -output lib/libcrypto.a
 lipo \
 	"/tmp/openssl-${OPENSSL_VERSION}-armv7/lib/libssl.a" \
-	"/tmp/openssl-${OPENSSL_VERSION}-armv7s/lib/libssl.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-arm64/lib/libssl.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-i386/lib/libssl.a" \
 	"/tmp/openssl-${OPENSSL_VERSION}-x86_64/lib/libssl.a" \
