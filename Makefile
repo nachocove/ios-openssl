@@ -9,5 +9,5 @@ lib:
 	mkdir -p lib
 
 clean:
-	rm -fr include/ lib/
+	rm -fr include/ lib/ openss-1.0.1m/
 
