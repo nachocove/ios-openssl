@@ -77,7 +77,7 @@ build()
    perl -i -pe 's|static volatile sig_atomic_t intr_signal|static volatile int intr_signal|' crypto/ui/ui_openssl.c
    perl -i -pe "s|^CC= gcc|CC= ${GCC} -arch ${ARCH} -miphoneos-version-min=${MIN_VERSION}|g" Makefile
    perl -i -pe "s|^CFLAG= (.*)|CFLAG= -isysroot ${SDK} \$1|g" Makefile
-   make -j4 &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.build-log"
+   make &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.build-log"
    if [ "$INSTALL" == "yes" ]; then
 	   make -k install &> "/tmp/openssl-${OPENSSL_VERSION}-${ARCH}.install-log"
    else
