@@ -12,7 +12,7 @@ OPENSSL_VERSION="1.0.1m"
 
 DEVELOPER="/Applications/Xcode.app/Contents/Developer"
 
-SDK_VERSION="8.4"
+SDK_VERSION="9.0"
 MIN_VERSION="6.0"
 
 IPHONEOS_PLATFORM="${DEVELOPER}/Platforms/iPhoneOS.platform"
